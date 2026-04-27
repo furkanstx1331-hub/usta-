@@ -2,218 +2,149 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>Usta Yazılım PRO v5.5 | 3D, 2D & Katalog</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Usta Yazılım v6.0 | Gerçek 3D Deneyimi</title>
     <style>
-        :root { --ana: #1e272e; --vurgu: #e67e22; --metin: #dcdde1; --kart: #2f3640; }
-        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--ana); color: var(--metin); display: flex; height: 100vh; overflow: hidden; }
-        
-        /* Sol Menü */
-        #sidebar { width: 350px; background: var(--kart); padding: 20px; overflow-y: auto; border-right: 3px solid var(--vurgu); box-shadow: 5px 0 15px rgba(0,0,0,0.5); }
-        h2 { color: var(--vurgu); text-align: center; border-bottom: 1px solid #555; padding-bottom: 10px; }
-        
-        label { display: block; margin-top: 15px; font-weight: bold; font-size: 0.9rem; color: #aaa; }
-        select, input { width: 100%; padding: 12px; margin-top: 5px; background: #353b48; border: 1px solid #555; border-radius: 8px; color: white; font-size: 1rem; box-sizing: border-box; }
-        
-        .btn-grup { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
-        .btn { padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; }
-        .btn-vurgu { background: var(--vurgu); color: white; }
-        .btn-normal { background: #7f8c8d; color: white; }
-        .btn:hover { opacity: 0.8; transform: scale(1.02); }
-
-        /* Sağ Alan */
-        #main { flex-grow: 1; display: flex; flex-direction: column; position: relative; }
-        .ust-bar { background: #353b48; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; }
-        #canvas-container { flex-grow: 1; background: #f1f2f6; position: relative; }
-        canvas { width: 100%; height: 100%; cursor: move; }
-
-        /* Bilgi Kartı */
-        #bilgi-karti { position: absolute; bottom: 20px; right: 20px; background: rgba(0,0,0,0.8); padding: 15px; border-radius: 10px; border-left: 5px solid var(--vurgu); min-width: 200px; }
-        .fiyat { font-size: 1.4rem; color: #4cd137; font-weight: bold; }
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: #1a1a1a; color: white; display: flex; height: 100vh; overflow: hidden; }
+        #sidebar { width: 320px; background: #252525; padding: 20px; border-right: 2px solid #e67e22; z-index: 10; overflow-y: auto; }
+        #render-container { flex-grow: 1; position: relative; cursor: grab; }
+        #render-container:active { cursor: grabbing; }
+        h2 { color: #e67e22; text-align: center; font-size: 1.2rem; }
+        label { display: block; margin-top: 15px; font-size: 0.8rem; color: #aaa; }
+        input, select { width: 100%; padding: 10px; margin-top: 5px; background: #333; border: 1px solid #444; color: white; border-radius: 5px; box-sizing: border-box; }
+        .info-box { position: absolute; top: 20px; right: 20px; background: rgba(0,0,0,0.7); padding: 15px; border-radius: 10px; pointer-events: none; }
+        .instruction { position: absolute; bottom: 20px; left: 340px; font-size: 0.8rem; color: #888; }
     </style>
 </head>
 <body>
 
 <div id="sidebar">
-    <h2>🛠️ USTA PRO v5.5</h2>
+    <h2>🛠️ USTA 3D PRO v6.0</h2>
     
-    <label>🗂️ PROFİL KATALOĞU</label>
-    <select id="katalog" onchange="hesapla()">
-        <optgroup label="Sürme Sistemler">
-            <option value="450" data-marka="ASAŞ" data-kod="LS 55">ASAŞ LS 55 (Lüks)</option>
-            <option value="380" data-marka="SARAY" data-kod="S60">SARAY S60 (Yalıtımlı)</option>
-        </optgroup>
-        <optgroup label="Standart Doğrama">
-            <option value="280" data-marka="FIRAT" data-kod="C60">C60 Standart Seri</option>
-            <option value="210" data-marka="YERLİ" data-kod="ALD">Aldoks Seri</option>
-        </optgroup>
+    <label>📖 KATALOG SEÇİMİ</label>
+    <select id="seriSelect">
+        <option value="1.5">ASAŞ LS 55 (Lüks)</option>
+        <option value="1.2">C60 Standart</option>
+        <option value="0.9">Aldoks Hafif</option>
     </select>
 
-    <label>🎨 RENK (RAL)</label>
-    <select id="renk" onchange="hesapla()">
-        <option value="#2f3640">7016 Antrasit Gri</option>
-        <option value="#ffffff">9016 Beyaz</option>
-        <option value="#2c3e50">9005 Siyah</option>
-        <option value="#7f8c8d">9006 Gümüş Gri</option>
-    </select>
+    <label>🎨 PROFİL RENGİ</label>
+    <input type="color" id="renkSecici" value="#e67e22">
 
-    <div class="btn-grup">
-        <div>
-            <label>Genişlik (cm)</label>
-            <input type="number" id="w" value="150" oninput="hesapla()">
-        </div>
-        <div>
-            <label>Yükseklik (cm)</label>
-            <input type="number" id="h" value="150" oninput="hesapla()">
-        </div>
-    </div>
+    <label>📏 GENİŞLİK (cm)</label>
+    <input type="number" id="wInput" value="150">
 
-    <label>📏 PROFİL DERİNLİĞİ (3D)</label>
-    <input type="range" id="depth" min="5" max="30" value="10" oninput="hesapla()">
+    <label>📏 YÜKSEKLİK (cm)</label>
+    <input type="number" id="hInput" value="200">
 
-    <label>🪟 CAM TİPİ</label>
-    <select id="cam" onchange="hesapla()">
-        <option value="400">4+12+4 Isıcam</option>
-        <option value="650">Konfor Cam (Sinerji)</option>
-        <option value="150">Tek Cam (4mm)</option>
-    </select>
+    <label>🧱 PROFİL ET KALINLIĞI (cm)</label>
+    <input type="number" id="dInput" value="10">
 
-    <div class="btn-grup">
-        <button class="btn btn-vurgu" onclick="setView('3d')">🧊 3D GÖRÜNÜM</button>
-        <button class="btn btn-normal" onclick="setView('2d')">📐 2D TEKNİK</button>
-    </div>
+    <hr style="margin: 20px 0; border: 0.5px solid #444;">
     
-    <button class="btn btn-vurgu" style="width:100%; margin-top:20px; background:#27ae60;" onclick="pdfIndir()">📥 TEKLİFİ KAYDET (PDF)</button>
+    <div id="fiyatEtiket" style="font-size: 1.2rem; color: #4cd137; font-weight: bold; text-align: center;">---</div>
 </div>
 
-<div id="main">
-    <div class="ust-bar">
-        <span id="marka-etiket">Sistem: ASAŞ LS 55</span>
-        <span>Lise 1 Yazılım Girişim Projesi 🚀</span>
+<div id="render-container" id="3d-view">
+    <div class="info-box">
+        <div id="m2Detay">Ölçü: 150x200 cm</div>
+        <div id="markaDetay">Seri: LS 55</div>
     </div>
-    <div id="canvas-container">
-        <canvas id="proCanvas"></canvas>
-        <div id="bilgi-karti">
-            <div>Tahmini Toplam Maliyet:</div>
-            <div id="fiyat-alan" class="fiyat">0.00 TL</div>
-            <small id="detay-alan" style="color:#aaa">KDV ve İşçilik Dahildir</small>
-        </div>
-    </div>
+    <div class="instruction">Fare ile döndür | Tekerlek ile yakınlaş | Sağ tık ile kaydır</div>
 </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
 <script>
-    let view = '3d';
-    const canvas = document.getElementById('proCanvas');
-    const ctx = canvas.getContext('2d');
+    let scene, camera, renderer, controls, frame;
 
-    function setView(v) { view = v; hesapla(); }
+    function init3D() {
+        // 1. Sahne Oluşturma
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x1a1a1a);
 
-    function hesapla() {
-        const select = document.getElementById('katalog');
-        const marka = select.options[select.selectedIndex].dataset.marka;
-        const kod = select.options[select.selectedIndex].dataset.kod;
-        document.getElementById('marka-etiket').innerText = `Sistem: ${marka} - ${kod}`;
+        // 2. Kamera Ayarı
+        camera = new THREE.PerspectiveCamera(75, (window.innerWidth - 320) / window.innerHeight, 0.1, 1000);
+        camera.position.set(200, 200, 300);
 
-        const w = parseFloat(document.getElementById('w').value) || 0;
-        const h = parseFloat(document.getElementById('h').value) || 0;
-        const profilFiyat = parseFloat(select.value);
-        const camFiyat = parseFloat(document.getElementById('cam').value);
+        // 3. Renderer (Çizici)
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth - 320, window.innerHeight);
+        document.getElementById('render-container').appendChild(renderer.domElement);
 
-        // Hesaplama Mantığı
-        const m2 = (w * h) / 10000;
-        const mtul = ((w * 2) + (h * 2)) / 100;
-        const toplam = (mtul * profilFiyat) + (m2 * camFiyat);
-        const sonFiyat = toplam * 1.4; // %40 Kar + İşçilik + Fire
+        // 4. Orbit Controls (Fare ile döndürme)
+        controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
 
-        document.getElementById('fiyat-alan').innerText = sonFiyat.toLocaleString('tr-TR', {style:'currency', currency:'TRY'});
+        // 5. Işıklandırma
+        const light = new THREE.DirectionalLight(0xffffff, 1);
+        light.position.set(5, 10, 7.5).normalize();
+        scene.add(light);
+        scene.add(new THREE.AmbientLight(0x404040, 2));
+
+        createFrame();
+        animate();
+    }
+
+    function createFrame() {
+        if(frame) scene.remove(frame);
         
-        ciz(w, h);
+        const w = parseFloat(document.getElementById('wInput').value);
+        const h = parseFloat(document.getElementById('hInput').value);
+        const d = parseFloat(document.getElementById('dInput').value); // Derinlik
+        const color = document.getElementById('renkSecici').value;
+        const pKalinlik = 5; // Profilin kendi kalınlığı
+
+        frame = new THREE.Group();
+
+        const material = new THREE.MeshStandardMaterial({ color: color, roughness: 0.3, metalness: 0.8 });
+
+        // Parçaları Oluştur (Alt, Üst, Sol, Sağ)
+        const createPart = (pw, ph, pd, px, py, pz) => {
+            const geo = new THREE.BoxGeometry(pw, ph, pd);
+            const mesh = new THREE.Mesh(geo, material);
+            mesh.position.set(px, py, pz);
+            frame.add(mesh);
+        };
+
+        // Kasa Parçaları
+        createPart(w, pKalinlik, d, 0, h/2, 0); // Üst
+        createPart(w, pKalinlik, d, 0, -h/2, 0); // Alt
+        createPart(pKalinlik, h, d, -w/2, 0, 0); // Sol
+        createPart(pKalinlik, h, d, w/2, 0, 0); // Sağ
+
+        // Cam Paneli (Yarı saydam)
+        const glassGeo = new THREE.BoxGeometry(w - pKalinlik, h - pKalinlik, 1);
+        const glassMat = new THREE.MeshStandardMaterial({ color: 0x87ceeb, transparent: true, opacity: 0.3 });
+        const glass = new THREE.Mesh(glassGeo, glassMat);
+        frame.add(glass);
+
+        scene.add(frame);
+
+        // Fiyat ve Bilgi Güncelle
+        document.getElementById('m2Detay').innerText = `Ölçü: ${w}x${h} cm`;
+        const fiyat = (w*h/10000 * 2500 * document.getElementById('seriSelect').value).toFixed(2);
+        document.getElementById('fiyatEtiket').innerText = `Teklif: ${fiyat} TL`;
     }
 
-    function ciz(w, h) {
-        canvas.width = canvas.offsetWidth;
-        canvas.height = canvas.offsetHeight;
-        const color = document.getElementById('renk').value;
-        const d = parseFloat(document.getElementById('depth').value);
-
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        const scale = Math.min((canvas.width-250)/w, (canvas.height-250)/h);
-        const cw = w * scale;
-        const ch = h * scale;
-        const cd = d * scale;
-        const ox = (canvas.width - cw) / 2;
-        const oy = (canvas.height - ch) / 2;
-
-        if (view === '2d') {
-            // 2D Çizim
-            ctx.strokeStyle = color;
-            ctx.lineWidth = 10;
-            ctx.strokeRect(ox, oy, cw, ch);
-            
-            // Ölçü Okları
-            ctx.fillStyle = "#333";
-            ctx.font = "bold 16px Arial";
-            ctx.fillText(w + " cm", canvas.width/2 - 20, oy - 20);
-            ctx.save();
-            ctx.translate(ox - 25, canvas.height/2);
-            ctx.rotate(-Math.PI/2);
-            ctx.fillText(h + " cm", 0, 0);
-            ctx.restore();
-        } else {
-            // İleri Seviye İzometrik 3D
-            // Yan duvar (Sol derinlik)
-            ctx.fillStyle = shadeColor(color, -20);
-            ctx.beginPath();
-            ctx.moveTo(ox, oy);
-            ctx.lineTo(ox - cd, oy + cd);
-            ctx.lineTo(ox - cd, oy + ch + cd);
-            ctx.lineTo(ox, oy + ch);
-            ctx.fill();
-
-            // Alt duvar (Alt derinlik)
-            ctx.fillStyle = shadeColor(color, -40);
-            ctx.beginPath();
-            ctx.moveTo(ox, oy + ch);
-            ctx.lineTo(ox - cd, oy + ch + cd);
-            ctx.lineTo(ox + cw - cd, oy + ch + cd);
-            ctx.lineTo(ox + cw, oy + ch);
-            ctx.fill();
-
-            // Ön yüzey
-            ctx.fillStyle = color;
-            ctx.strokeStyle = "#fff";
-            ctx.lineWidth = 1;
-            ctx.fillRect(ox, oy, cw, ch);
-            ctx.strokeRect(ox, oy, cw, ch);
-
-            // Cam efekti
-            ctx.fillStyle = "rgba(135, 206, 235, 0.3)";
-            ctx.fillRect(ox + 10, oy + 10, cw - 20, ch - 20);
-        }
+    function animate() {
+        requestAnimationFrame(animate);
+        controls.update();
+        renderer.render(scene, camera);
     }
 
-    // Renk gölgelendirme fonksiyonu (3D efekti için)
-    function shadeColor(color, percent) {
-        let R = parseInt(color.substring(1,3),16);
-        let G = parseInt(color.substring(3,5),16);
-        let B = parseInt(color.substring(5,7),16);
-        R = parseInt(R * (100 + percent) / 100);
-        G = parseInt(G * (100 + percent) / 100);
-        B = parseInt(B * (100 + percent) / 100);
-        R = (R<255)?R:255; G = (G<255)?G:255; B = (B<255)?B:255;
-        let RR = ((R.toString(16).length==1)?"0"+R.toString(16):R.toString(16));
-        let GG = ((G.toString(16).length==1)?"0"+G.toString(16):G.toString(16));
-        let BB = ((B.toString(16).length==1)?"0"+B.toString(16):B.toString(16));
-        return "#"+RR+GG+BB;
-    }
+    // Inputları dinle
+    document.querySelectorAll('input, select').forEach(el => {
+        el.addEventListener('input', createFrame);
+    });
 
-    function pdfIndir() {
-        alert("Teklif PDF olarak hazırlandı! (Lise 1 Proje Notu: Gerçek PDF kütüphanesi entegrasyonu bir sonraki aşamada eklenecektir.)");
-    }
+    window.addEventListener('resize', () => {
+        camera.aspect = (window.innerWidth - 320) / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth - 320, window.innerHeight);
+    });
 
-    window.onload = hesapla;
-    window.onresize = hesapla;
+    init3D();
 </script>
 
 </body>
