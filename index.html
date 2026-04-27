@@ -2,210 +2,218 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>Usta Yazılım v4.0 - Profesyonel Çizim & Hesap</title>
+    <title>Usta Yazılım PRO v5.5 | 3D, 2D & Katalog</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        :root { --ana: #2c3e50; --vurgu: #e67e22; --beyaz: #ffffff; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #eceff1; margin: 0; padding: 10px; color: #333; }
-        .app-container { max-width: 800px; margin: auto; background: var(--beyaz); border-radius: 15px; box-shadow: 0 5px 25px rgba(0,0,0,0.1); overflow: hidden; }
-        .header { background: var(--ana); color: var(--beyaz); padding: 20px; text-align: center; }
-        .content { padding: 20px; display: grid; grid-template-columns: 1fr 1.5fr; gap: 20px; }
-        @media (max-width: 768px) { .content { grid-template-columns: 1fr; } }
+        :root { --ana: #1e272e; --vurgu: #e67e22; --metin: #dcdde1; --kart: #2f3640; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--ana); color: var(--metin); display: flex; height: 100vh; overflow: hidden; }
         
-        .form-group { margin-bottom: 15px; }
-        label { font-weight: bold; font-size: 0.9rem; display: block; margin-bottom: 5px; }
-        select, input { width: 100%; padding: 10px; border: 1.5px solid #ddd; border-radius: 8px; font-size: 1rem; box-sizing: border-box; }
+        /* Sol Menü */
+        #sidebar { width: 350px; background: var(--kart); padding: 20px; overflow-y: auto; border-right: 3px solid var(--vurgu); box-shadow: 5px 0 15px rgba(0,0,0,0.5); }
+        h2 { color: var(--vurgu); text-align: center; border-bottom: 1px solid #555; padding-bottom: 10px; }
         
-        .btn-hesapla { background: var(--vurgu); color: white; border: none; padding: 15px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.3s; margin-top: 10px; }
-        .btn-hesapla:hover { background: #d35400; }
+        label { display: block; margin-top: 15px; font-weight: bold; font-size: 0.9rem; color: #aaa; }
+        select, input { width: 100%; padding: 12px; margin-top: 5px; background: #353b48; border: 1px solid #555; border-radius: 8px; color: white; font-size: 1rem; box-sizing: border-box; }
         
-        #cizimAlaniBox { background: #f8f9fa; border: 2px solid #dee2e6; border-radius: 10px; position: relative; }
-        canvas { width: 100%; height: 400px; cursor: crosshair; display: block; }
-        
-        #sonucPaneli { background: #f1f2f6; padding: 15px; border-radius: 10px; border-left: 5px solid var(--vurgu); margin-top: 15px; }
-        .ozet-item { display: flex; justify-content: space-between; margin-bottom: 5px; }
-        .fiyat-final { font-size: 1.2rem; font-weight: bold; color: #27ae60; border-top: 1px solid #ccc; padding-top: 5px; }
+        .btn-grup { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+        .btn { padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .btn-vurgu { background: var(--vurgu); color: white; }
+        .btn-normal { background: #7f8c8d; color: white; }
+        .btn:hover { opacity: 0.8; transform: scale(1.02); }
+
+        /* Sağ Alan */
+        #main { flex-grow: 1; display: flex; flex-direction: column; position: relative; }
+        .ust-bar { background: #353b48; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; }
+        #canvas-container { flex-grow: 1; background: #f1f2f6; position: relative; }
+        canvas { width: 100%; height: 100%; cursor: move; }
+
+        /* Bilgi Kartı */
+        #bilgi-karti { position: absolute; bottom: 20px; right: 20px; background: rgba(0,0,0,0.8); padding: 15px; border-radius: 10px; border-left: 5px solid var(--vurgu); min-width: 200px; }
+        .fiyat { font-size: 1.4rem; color: #4cd137; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<div class="app-container">
-    <div class="header">
-        <h2 style="margin:0">🛠️ Usta Yazılım v4.0</h2>
-        <small>LS 55 - C60 - Kompozit | Profesyonel Çizim</small>
+<div id="sidebar">
+    <h2>🛠️ USTA PRO v5.5</h2>
+    
+    <label>🗂️ PROFİL KATALOĞU</label>
+    <select id="katalog" onchange="hesapla()">
+        <optgroup label="Sürme Sistemler">
+            <option value="450" data-marka="ASAŞ" data-kod="LS 55">ASAŞ LS 55 (Lüks)</option>
+            <option value="380" data-marka="SARAY" data-kod="S60">SARAY S60 (Yalıtımlı)</option>
+        </optgroup>
+        <optgroup label="Standart Doğrama">
+            <option value="280" data-marka="FIRAT" data-kod="C60">C60 Standart Seri</option>
+            <option value="210" data-marka="YERLİ" data-kod="ALD">Aldoks Seri</option>
+        </optgroup>
+    </select>
+
+    <label>🎨 RENK (RAL)</label>
+    <select id="renk" onchange="hesapla()">
+        <option value="#2f3640">7016 Antrasit Gri</option>
+        <option value="#ffffff">9016 Beyaz</option>
+        <option value="#2c3e50">9005 Siyah</option>
+        <option value="#7f8c8d">9006 Gümüş Gri</option>
+    </select>
+
+    <div class="btn-grup">
+        <div>
+            <label>Genişlik (cm)</label>
+            <input type="number" id="w" value="150" oninput="hesapla()">
+        </div>
+        <div>
+            <label>Yükseklik (cm)</label>
+            <input type="number" id="h" value="150" oninput="hesapla()">
+        </div>
     </div>
 
-    <div class="content">
-        <div class="kontrol-paneli">
-            <div class="form-group">
-                <label>İşlem Tipi</label>
-                <select id="islemTipi" onchange="arayuzAyarla()">
-                    <option value="pencere">Pencere / Doğrama</option>
-                    <option value="kapi">Kapı Sistemleri</option>
-                    <option value="kompozit">Kompozit Kaplama</option>
-                </select>
-            </div>
+    <label>📏 PROFİL DERİNLİĞİ (3D)</label>
+    <input type="range" id="depth" min="5" max="30" value="10" oninput="hesapla()">
 
-            <div class="form-group">
-                <label>Sistem Serisi</label>
-                <select id="seri">
-                    <option value="350">LS 55 Yalıtımlı</option>
-                    <option value="260">C60 Standart</option>
-                    <option value="180">Aldoks</option>
-                </select>
-            </div>
+    <label>🪟 CAM TİPİ</label>
+    <select id="cam" onchange="hesapla()">
+        <option value="400">4+12+4 Isıcam</option>
+        <option value="650">Konfor Cam (Sinerji)</option>
+        <option value="150">Tek Cam (4mm)</option>
+    </select>
 
-            <div id="kompozitRenkBox" class="form-group" style="display:none;">
-                <label>Kompozit Rengi</label>
-                <input type="color" id="kompRenk" value="#34495e">
-            </div>
+    <div class="btn-grup">
+        <button class="btn btn-vurgu" onclick="setView('3d')">🧊 3D GÖRÜNÜM</button>
+        <button class="btn btn-normal" onclick="setView('2d')">📐 2D TEKNİK</button>
+    </div>
+    
+    <button class="btn btn-vurgu" style="width:100%; margin-top:20px; background:#27ae60;" onclick="pdfIndir()">📥 TEKLİFİ KAYDET (PDF)</button>
+</div>
 
-            <div style="display:flex; gap:10px;">
-                <div class="form-group">
-                    <label>Genişlik (cm)</label>
-                    <input type="number" id="gen" value="100">
-                </div>
-                <div class="form-group">
-                    <label>Yükseklik (cm)</label>
-                    <input type="number" id="yuk" value="210">
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label>Kayıt Ekle (Konum cm)</label>
-                <div style="display:flex; gap:5px;">
-                    <input type="number" id="kayitKonum" placeholder="Örn: 80">
-                    <button onclick="kayitEkle('H')" style="width:50px">Y</button>
-                    <button onclick="kayitEkle('V')" style="width:50px">D</button>
-                </div>
-                <small style="color:#777">Y: Yatay, D: Dikey</small>
-            </div>
-
-            <button class="btn-hesapla" onclick="fullHesapla()">HESAPLA & ÇİZİM GÜNCELLE</button>
-
-            <div id="sonucPaneli">
-                <div id="ozet">Lütfen hesaplama yapın...</div>
-            </div>
-        </div>
-
-        <div class="cizim-paneli">
-            <div id="cizimAlaniBox">
-                <canvas id="ustaCanvas"></canvas>
-            </div>
-            <p style="font-size: 0.8rem; color: #666; text-align: center;">* Çizim üzerinden ölçüleri kontrol edebilirsiniz.</p>
+<div id="main">
+    <div class="ust-bar">
+        <span id="marka-etiket">Sistem: ASAŞ LS 55</span>
+        <span>Lise 1 Yazılım Girişim Projesi 🚀</span>
+    </div>
+    <div id="canvas-container">
+        <canvas id="proCanvas"></canvas>
+        <div id="bilgi-karti">
+            <div>Tahmini Toplam Maliyet:</div>
+            <div id="fiyat-alan" class="fiyat">0.00 TL</div>
+            <small id="detay-alan" style="color:#aaa">KDV ve İşçilik Dahildir</small>
         </div>
     </div>
 </div>
 
 <script>
-    let kayitlar = []; // Eklenen kayıtların listesi
+    let view = '3d';
+    const canvas = document.getElementById('proCanvas');
+    const ctx = canvas.getContext('2d');
 
-    function arayuzAyarla() {
-        const tip = document.getElementById('islemTipi').value;
-        document.getElementById('kompozitRenkBox').style.display = (tip === 'kompozit') ? 'block' : 'none';
-        kayitlar = []; // Tip değişince kayıtları sıfırla
-    }
+    function setView(v) { view = v; hesapla(); }
 
-    function kayitEkle(yon) {
-        const konum = parseFloat(document.getElementById('kayitKonum').value);
-        if(!konum) return;
-        kayitlar.push({yon: yon, pos: konum});
-        fullHesapla();
-    }
+    function hesapla() {
+        const select = document.getElementById('katalog');
+        const marka = select.options[select.selectedIndex].dataset.marka;
+        const kod = select.options[select.selectedIndex].dataset.kod;
+        document.getElementById('marka-etiket').innerText = `Sistem: ${marka} - ${kod}`;
 
-    function fullHesapla() {
-        const tip = document.getElementById('islemTipi').value;
-        const seriFiyat = parseFloat(document.getElementById('seri').value);
-        const g = parseFloat(document.getElementById('gen').value);
-        const y = parseFloat(document.getElementById('yuk').value);
+        const w = parseFloat(document.getElementById('w').value) || 0;
+        const h = parseFloat(document.getElementById('h').value) || 0;
+        const profilFiyat = parseFloat(select.value);
+        const camFiyat = parseFloat(document.getElementById('cam').value);
+
+        // Hesaplama Mantığı
+        const m2 = (w * h) / 10000;
+        const mtul = ((w * 2) + (h * 2)) / 100;
+        const toplam = (mtul * profilFiyat) + (m2 * camFiyat);
+        const sonFiyat = toplam * 1.4; // %40 Kar + İşçilik + Fire
+
+        document.getElementById('fiyat-alan').innerText = sonFiyat.toLocaleString('tr-TR', {style:'currency', currency:'TRY'});
         
-        let toplamMetre = 0;
-        let m2 = (g * y) / 10000;
-        
-        if(tip === 'kompozit') {
-            toplamMetre = m2; // m2 üzerinden hesap
-        } else {
-            // Çevre Hesabı
-            toplamMetre = ((g * 2) + (y * 2)) / 100;
-            // Kayıtları Ekle
-            kayitlar.forEach(k => {
-                toplamMetre += (k.yon === 'H' ? g : y) / 100;
-            });
-        }
-
-        const hamMaliyet = toplamMetre * seriFiyat;
-        const kdvli = hamMaliyet * 1.20;
-        const karli = kdvli * 1.30; // %30 Kar marjı
-
-        document.getElementById('ozet').innerHTML = `
-            <div class="ozet-item"><span>Miktar:</span> <span>${toplamMetre.toFixed(2)} ${tip==='kompozit'?'m²':'mt'}</span></div>
-            <div class="ozet-item"><span>Ham Maliyet:</span> <span>${hamMaliyet.toLocaleString()} TL</span></div>
-            <div class="ozet-item"><span>KDV (%20):</span> <span>${(kdvli-hamMaliyet).toLocaleString()} TL</span></div>
-            <div class="fiyat-final"><span>Teklif Fiyatı:</span> <span>${karli.toLocaleString('tr-TR')} TL</span></div>
-        `;
-
-        cizimYap(g, y, tip);
+        ciz(w, h);
     }
 
-    function cizimYap(g, y, tip) {
-        const canvas = document.getElementById('ustaCanvas');
-        const ctx = canvas.getContext('2d');
+    function ciz(w, h) {
         canvas.width = canvas.offsetWidth;
-        canvas.height = 400;
+        canvas.height = canvas.offsetHeight;
+        const color = document.getElementById('renk').value;
+        const d = parseFloat(document.getElementById('depth').value);
 
-        const oran = Math.min((canvas.width * 0.8) / g, (canvas.height * 0.8) / y);
-        const cg = g * oran;
-        const cy = y * oran;
-        const ox = (canvas.width - cg) / 2;
-        const oy = (canvas.height - cy) / 2;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        ctx.clearRect(0,0, canvas.width, canvas.height);
+        const scale = Math.min((canvas.width-250)/w, (canvas.height-250)/h);
+        const cw = w * scale;
+        const ch = h * scale;
+        const cd = d * scale;
+        const ox = (canvas.width - cw) / 2;
+        const oy = (canvas.height - ch) / 2;
 
-        // Arka Plan Çizimi
-        if(tip === 'kompozit') {
-            ctx.fillStyle = document.getElementById('kompRenk').value;
-            ctx.fillRect(ox, oy, cg, cy);
-        }
-
-        // Ana Çerçeve
-        ctx.strokeStyle = "#2c3e50";
-        ctx.lineWidth = 5;
-        ctx.strokeRect(ox, oy, cg, cy);
-
-        // Kayıtları Çiz
-        ctx.lineWidth = 3;
-        ctx.strokeStyle = "#7f8c8d";
-        kayitlar.forEach(k => {
-            ctx.beginPath();
-            if(k.yon === 'H') {
-                let yPos = oy + (k.pos * oran);
-                if(yPos < oy + cy) { ctx.moveTo(ox, yPos); ctx.lineTo(ox + cg, yPos); }
-            } else {
-                let xPos = ox + (k.pos * oran);
-                if(xPos < ox + cg) { ctx.moveTo(xPos, oy); ctx.lineTo(xPos, oy + cy); }
-            }
-            ctx.stroke();
-        });
-
-        // Kapı Detayı
-        if(tip === 'kapi') {
-            // Kapı Kolu
+        if (view === '2d') {
+            // 2D Çizim
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 10;
+            ctx.strokeRect(ox, oy, cw, ch);
+            
+            // Ölçü Okları
             ctx.fillStyle = "#333";
-            ctx.fillRect(ox + cg - 15, oy + cy/2, 10, 2); // Kol
-            // Alt Eşik
-            ctx.lineWidth = 8;
-            ctx.beginPath(); ctx.moveTo(ox, oy+cy); ctx.lineTo(ox+cg, oy+cy); ctx.stroke();
-        }
+            ctx.font = "bold 16px Arial";
+            ctx.fillText(w + " cm", canvas.width/2 - 20, oy - 20);
+            ctx.save();
+            ctx.translate(ox - 25, canvas.height/2);
+            ctx.rotate(-Math.PI/2);
+            ctx.fillText(h + " cm", 0, 0);
+            ctx.restore();
+        } else {
+            // İleri Seviye İzometrik 3D
+            // Yan duvar (Sol derinlik)
+            ctx.fillStyle = shadeColor(color, -20);
+            ctx.beginPath();
+            ctx.moveTo(ox, oy);
+            ctx.lineTo(ox - cd, oy + cd);
+            ctx.lineTo(ox - cd, oy + ch + cd);
+            ctx.lineTo(ox, oy + ch);
+            ctx.fill();
 
-        // Ölçü Etiketleri
-        ctx.fillStyle = "#000";
-        ctx.font = "bold 12px Arial";
-        ctx.fillText(g + " cm", canvas.width/2 - 15, oy - 10);
-        ctx.fillText(y + " cm", ox + cg + 10, canvas.height/2);
+            // Alt duvar (Alt derinlik)
+            ctx.fillStyle = shadeColor(color, -40);
+            ctx.beginPath();
+            ctx.moveTo(ox, oy + ch);
+            ctx.lineTo(ox - cd, oy + ch + cd);
+            ctx.lineTo(ox + cw - cd, oy + ch + cd);
+            ctx.lineTo(ox + cw, oy + ch);
+            ctx.fill();
+
+            // Ön yüzey
+            ctx.fillStyle = color;
+            ctx.strokeStyle = "#fff";
+            ctx.lineWidth = 1;
+            ctx.fillRect(ox, oy, cw, ch);
+            ctx.strokeRect(ox, oy, cw, ch);
+
+            // Cam efekti
+            ctx.fillStyle = "rgba(135, 206, 235, 0.3)";
+            ctx.fillRect(ox + 10, oy + 10, cw - 20, ch - 20);
+        }
     }
 
-    // İlk açılışta bir kez çiz
-    window.onload = fullHesapla;
+    // Renk gölgelendirme fonksiyonu (3D efekti için)
+    function shadeColor(color, percent) {
+        let R = parseInt(color.substring(1,3),16);
+        let G = parseInt(color.substring(3,5),16);
+        let B = parseInt(color.substring(5,7),16);
+        R = parseInt(R * (100 + percent) / 100);
+        G = parseInt(G * (100 + percent) / 100);
+        B = parseInt(B * (100 + percent) / 100);
+        R = (R<255)?R:255; G = (G<255)?G:255; B = (B<255)?B:255;
+        let RR = ((R.toString(16).length==1)?"0"+R.toString(16):R.toString(16));
+        let GG = ((G.toString(16).length==1)?"0"+G.toString(16):G.toString(16));
+        let BB = ((B.toString(16).length==1)?"0"+B.toString(16):B.toString(16));
+        return "#"+RR+GG+BB;
+    }
+
+    function pdfIndir() {
+        alert("Teklif PDF olarak hazırlandı! (Lise 1 Proje Notu: Gerçek PDF kütüphanesi entegrasyonu bir sonraki aşamada eklenecektir.)");
+    }
+
+    window.onload = hesapla;
+    window.onresize = hesapla;
 </script>
 
 </body>
