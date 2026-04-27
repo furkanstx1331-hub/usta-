@@ -2,150 +2,150 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>Usta Yazılım v6.0 | Gerçek 3D Deneyimi</title>
+    <title>Usta 3D v7.0 | 45 Derece Gönye & Serbest Taşıma</title>
     <style>
-        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: #1a1a1a; color: white; display: flex; height: 100vh; overflow: hidden; }
-        #sidebar { width: 320px; background: #252525; padding: 20px; border-right: 2px solid #e67e22; z-index: 10; overflow-y: auto; }
-        #render-container { flex-grow: 1; position: relative; cursor: grab; }
-        #render-container:active { cursor: grabbing; }
-        h2 { color: #e67e22; text-align: center; font-size: 1.2rem; }
-        label { display: block; margin-top: 15px; font-size: 0.8rem; color: #aaa; }
-        input, select { width: 100%; padding: 10px; margin-top: 5px; background: #333; border: 1px solid #444; color: white; border-radius: 5px; box-sizing: border-box; }
-        .info-box { position: absolute; top: 20px; right: 20px; background: rgba(0,0,0,0.7); padding: 15px; border-radius: 10px; pointer-events: none; }
-        .instruction { position: absolute; bottom: 20px; left: 340px; font-size: 0.8rem; color: #888; }
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: #111; color: white; display: flex; height: 100vh; overflow: hidden; }
+        #sidebar { width: 300px; background: #222; padding: 20px; border-right: 2px solid #e67e22; z-index: 10; }
+        #render-container { flex-grow: 1; position: relative; }
+        h2 { color: #e67e22; font-size: 1.1rem; text-align: center; }
+        .hint { font-size: 0.75rem; color: #777; margin-top: 10px; line-height: 1.4; }
+        input, select { width: 100%; padding: 10px; margin-top: 5px; background: #333; border: 1px solid #444; color: white; border-radius: 5px; }
+        .fiyat-box { margin-top: 20px; padding: 15px; background: #2e7d32; border-radius: 8px; text-align: center; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div id="sidebar">
-    <h2>🛠️ USTA 3D PRO v6.0</h2>
+    <h2>🛠️ USTA 3D PRO v7.0</h2>
     
-    <label>📖 KATALOG SEÇİMİ</label>
-    <select id="seriSelect">
-        <option value="1.5">ASAŞ LS 55 (Lüks)</option>
-        <option value="1.2">C60 Standart</option>
-        <option value="0.9">Aldoks Hafif</option>
+    <label>📖 Profil Serisi</label>
+    <select id="seri" onchange="olcuGuncelle()">
+        <option value="5.5">LS 55 (5.5cm Genişlik)</option>
+        <option value="6.0">C60 (6.0cm Genişlik)</option>
+        <option value="4.5">Aldoks (4.5cm Genişlik)</option>
     </select>
 
-    <label>🎨 PROFİL RENGİ</label>
-    <input type="color" id="renkSecici" value="#e67e22">
+    <label>📏 Genişlik (cm)</label>
+    <input type="number" id="w" value="120" oninput="olcuGuncelle()">
 
-    <label>📏 GENİŞLİK (cm)</label>
-    <input type="number" id="wInput" value="150">
+    <label>📏 Yükseklik (cm)</label>
+    <input type="number" id="h" value="150" oninput="olcuGuncelle()">
 
-    <label>📏 YÜKSEKLİK (cm)</label>
-    <input type="number" id="hInput" value="200">
+    <label>🎨 Profil Rengi</label>
+    <input type="color" id="renk" value="#34495e" oninput="olcuGuncelle()">
 
-    <label>🧱 PROFİL ET KALINLIĞI (cm)</label>
-    <input type="number" id="dInput" value="10">
+    <div class="fiyat-box" id="fiyatDisplay">Teklif: 4.500 TL</div>
 
-    <hr style="margin: 20px 0; border: 0.5px solid #444;">
-    
-    <div id="fiyatEtiket" style="font-size: 1.2rem; color: #4cd137; font-weight: bold; text-align: center;">---</div>
-</div>
-
-<div id="render-container" id="3d-view">
-    <div class="info-box">
-        <div id="m2Detay">Ölçü: 150x200 cm</div>
-        <div id="markaDetay">Seri: LS 55</div>
+    <div class="hint">
+        <b>Kontroller:</b><br>
+        • <b>Sol Tık:</b> Objeyi sürükle (Tinkercad modu)<br>
+        • <b>Sağ Tık:</b> Kamerayı döndür<br>
+        • <b>Tekerlek:</b> Yakınlaş / Uzaklaş
     </div>
-    <div class="instruction">Fare ile döndür | Tekerlek ile yakınlaş | Sağ tık ile kaydır</div>
 </div>
+
+<div id="render-container"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/DragControls.js"></script>
 
 <script>
-    let scene, camera, renderer, controls, frame;
+    let scene, camera, renderer, orbit, dragControls, frameGroup;
+    const objects = [];
 
-    function init3D() {
-        // 1. Sahne Oluşturma
+    function init() {
         scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x1a1a1a);
+        scene.background = new THREE.Color(0x111111);
 
-        // 2. Kamera Ayarı
-        camera = new THREE.PerspectiveCamera(75, (window.innerWidth - 320) / window.innerHeight, 0.1, 1000);
-        camera.position.set(200, 200, 300);
+        camera = new THREE.PerspectiveCamera(45, (window.innerWidth - 300) / window.innerHeight, 1, 2000);
+        camera.position.set(300, 300, 500);
 
-        // 3. Renderer (Çizici)
         renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(window.innerWidth - 320, window.innerHeight);
+        renderer.setSize(window.innerWidth - 300, window.innerHeight);
         document.getElementById('render-container').appendChild(renderer.domElement);
 
-        // 4. Orbit Controls (Fare ile döndürme)
-        controls = new THREE.OrbitControls(camera, renderer.domElement);
-        controls.enableDamping = true;
+        // Kamera Kontrolü (Sağ Tık ile Dönüş)
+        orbit = new THREE.OrbitControls(camera, renderer.domElement);
+        orbit.mouseButtons = { ORBIT: THREE.MOUSE.RIGHT, ZOOM: THREE.MOUSE.MIDDLE, PAN: THREE.MOUSE.LEFT };
+        orbit.enableDamping = true;
 
-        // 5. Işıklandırma
-        const light = new THREE.DirectionalLight(0xffffff, 1);
-        light.position.set(5, 10, 7.5).normalize();
-        scene.add(light);
-        scene.add(new THREE.AmbientLight(0x404040, 2));
+        const light1 = new THREE.DirectionalLight(0xffffff, 1);
+        light1.position.set(100, 200, 100);
+        scene.add(light1);
+        scene.add(new THREE.AmbientLight(0xffffff, 0.5));
 
-        createFrame();
+        olcuGuncelle();
         animate();
     }
 
-    function createFrame() {
-        if(frame) scene.remove(frame);
+    function createGonyeliProfil(uzunluk, gen, renk, yatayMi) {
+        const shape = new THREE.Shape();
+        // 45 derece kesim için yamuk çizimi
+        const kesit = gen; 
+        shape.moveTo(0, 0);
+        shape.lineTo(uzunluk, 0);
+        shape.lineTo(uzunluk - kesit, kesit);
+        shape.lineTo(kesit, kesit);
+        shape.lineTo(0, 0);
+
+        const settings = { depth: 5, bevelEnabled: false };
+        const geometry = new THREE.ExtrudeGeometry(shape, settings);
+        const material = new THREE.MeshStandardMaterial({ color: renk, metalness: 0.7, roughness: 0.3 });
+        const mesh = new THREE.Mesh(geometry, material);
         
-        const w = parseFloat(document.getElementById('wInput').value);
-        const h = parseFloat(document.getElementById('hInput').value);
-        const d = parseFloat(document.getElementById('dInput').value); // Derinlik
-        const color = document.getElementById('renkSecici').value;
-        const pKalinlik = 5; // Profilin kendi kalınlığı
+        return mesh;
+    }
 
-        frame = new THREE.Group();
+    function olcuGuncelle() {
+        if(frameGroup) scene.remove(frameGroup);
+        frameGroup = new THREE.Group();
+        
+        const W = parseFloat(document.getElementById('w').value);
+        const H = parseFloat(document.getElementById('h').value);
+        const GEN = parseFloat(document.getElementById('seri').value);
+        const RENK = document.getElementById('renk').value;
 
-        const material = new THREE.MeshStandardMaterial({ color: color, roughness: 0.3, metalness: 0.8 });
+        // Üst Profil
+        const ust = createGonyeliProfil(W, GEN, RENK);
+        ust.position.set(-W/2, H/2, 0);
+        
+        // Alt Profil
+        const alt = createGonyeliProfil(W, GEN, RENK);
+        alt.rotation.z = Math.PI;
+        alt.position.set(W/2, -H/2, 5);
 
-        // Parçaları Oluştur (Alt, Üst, Sol, Sağ)
-        const createPart = (pw, ph, pd, px, py, pz) => {
-            const geo = new THREE.BoxGeometry(pw, ph, pd);
-            const mesh = new THREE.Mesh(geo, material);
-            mesh.position.set(px, py, pz);
-            frame.add(mesh);
-        };
+        // Sol Profil
+        const sol = createGonyeliProfil(H, GEN, RENK);
+        sol.rotation.z = Math.PI / 2;
+        sol.position.set(-W/2, -H/2, 5);
 
-        // Kasa Parçaları
-        createPart(w, pKalinlik, d, 0, h/2, 0); // Üst
-        createPart(w, pKalinlik, d, 0, -h/2, 0); // Alt
-        createPart(pKalinlik, h, d, -w/2, 0, 0); // Sol
-        createPart(pKalinlik, h, d, w/2, 0, 0); // Sağ
+        // Sağ Profil
+        const sag = createGonyeliProfil(H, GEN, RENK);
+        sag.rotation.z = -Math.PI / 2;
+        sag.position.set(W/2, H/2, 0);
 
-        // Cam Paneli (Yarı saydam)
-        const glassGeo = new THREE.BoxGeometry(w - pKalinlik, h - pKalinlik, 1);
-        const glassMat = new THREE.MeshStandardMaterial({ color: 0x87ceeb, transparent: true, opacity: 0.3 });
-        const glass = new THREE.Mesh(glassGeo, glassMat);
-        frame.add(glass);
+        frameGroup.add(ust, alt, sol, sag);
+        scene.add(frameGroup);
 
-        scene.add(frame);
+        // Sürükleme Kontrolü
+        if(dragControls) dragControls.dispose();
+        dragControls = new THREE.DragControls([frameGroup], camera, renderer.domElement);
+        
+        dragControls.addEventListener('dragstart', () => orbit.enabled = false);
+        dragControls.addEventListener('dragend', () => orbit.enabled = true);
 
-        // Fiyat ve Bilgi Güncelle
-        document.getElementById('m2Detay').innerText = `Ölçü: ${w}x${h} cm`;
-        const fiyat = (w*h/10000 * 2500 * document.getElementById('seriSelect').value).toFixed(2);
-        document.getElementById('fiyatEtiket').innerText = `Teklif: ${fiyat} TL`;
+        // Fiyat Güncelle (Temsili)
+        document.getElementById('fiyatDisplay').innerText = `Teklif: ${(W*H/10).toLocaleString()} TL`;
     }
 
     function animate() {
         requestAnimationFrame(animate);
-        controls.update();
+        orbit.update();
         renderer.render(scene, camera);
     }
 
-    // Inputları dinle
-    document.querySelectorAll('input, select').forEach(el => {
-        el.addEventListener('input', createFrame);
-    });
-
-    window.addEventListener('resize', () => {
-        camera.aspect = (window.innerWidth - 320) / window.innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth - 320, window.innerHeight);
-    });
-
-    init3D();
+    init();
 </script>
-
 </body>
-</html>
+</html>    
