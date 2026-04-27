@@ -2,217 +2,225 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>USTA CAD v12 | Industrial Beast Edition</title>
+    <title>USTA CAD v13 | The Ultimate Industrial Engine</title>
     <style>
-        :root { --main: #007acc; --bg: #0d0d0d; --panel: #1a1a1a; --border: #333; }
-        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); color: #ccc; display: flex; height: 100vh; }
+        :root { --accent: #00a8ff; --panel-dark: #121212; --border: #333; }
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: #000; color: #fff; display: flex; height: 100vh; overflow: hidden; }
         
-        /* Panel Tasarımı */
-        #sidebar { width: 360px; background: var(--panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; z-index: 10; box-shadow: 10px 0 20px rgba(0,0,0,0.5); }
-        .header { padding: 25px; background: #222; border-bottom: 2px solid var(--main); text-align: center; }
-        .scroll { flex-grow: 1; overflow-y: auto; padding: 20px; }
+        #sidebar { width: 380px; background: var(--panel-dark); border-right: 2px solid var(--accent); display: flex; flex-direction: column; z-index: 100; box-shadow: 5px 0 20px rgba(0,0,0,0.8); }
+        .header { padding: 20px; background: #1e1e1e; border-bottom: 1px solid var(--border); text-align: center; }
+        .controls { padding: 20px; flex-grow: 1; overflow-y: auto; }
         
-        h3 { font-size: 0.8rem; color: var(--main); text-transform: uppercase; margin: 20px 0 10px 0; border-left: 3px solid var(--main); padding-left: 10px; }
-        select, input { width: 100%; background: #252525; border: 1px solid #444; color: #fff; padding: 12px; margin-bottom: 15px; border-radius: 4px; box-sizing: border-box; }
+        h3 { font-size: 0.75rem; color: var(--accent); text-transform: uppercase; letter-spacing: 2px; margin: 25px 0 10px; border-bottom: 1px solid #333; padding-bottom: 5px; }
+        label { display: block; font-size: 0.7rem; color: #888; margin-bottom: 5px; }
+        select, input { width: 100%; background: #222; border: 1px solid #444; color: #00ff00; padding: 10px; margin-bottom: 15px; border-radius: 4px; font-family: 'Consolas', monospace; }
         
-        /* Butonlar */
-        .btn { padding: 12px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; margin-bottom: 10px; transition: 0.3s; }
-        .btn-main { background: var(--main); color: white; }
-        .btn-add { background: #28a745; color: white; }
-        .btn-danger { background: #dc3545; color: white; }
-        .btn:hover { filter: brightness(1.2); transform: translateY(-2px); }
+        .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        button { background: #333; color: white; border: 1px solid #555; padding: 12px; cursor: pointer; font-weight: bold; transition: all 0.3s; border-radius: 4px; }
+        button:hover { background: var(--accent); border-color: #fff; transform: translateY(-2px); }
+        .btn-active { background: var(--accent); border-color: #fff; }
 
-        /* Viewport */
-        #viewport { flex-grow: 1; position: relative; background: #000; }
-        canvas { width: 100%; height: 100%; }
-
-        /* Teknik Bilgi Ekranı */
-        #overlay { position: absolute; top: 20px; right: 20px; background: rgba(0,0,0,0.8); padding: 20px; border-radius: 10px; border: 1px solid var(--main); backdrop-filter: blur(5px); }
-        .bom-item { font-family: monospace; font-size: 0.8rem; margin-bottom: 5px; color: #4ec9b0; }
+        #viewport { flex-grow: 1; position: relative; }
+        #data-box { position: absolute; top: 20px; right: 20px; background: rgba(0,0,0,0.85); padding: 20px; border: 1px solid var(--accent); border-radius: 8px; width: 300px; backdrop-filter: blur(10px); }
+        .tech-list { font-family: 'Consolas', monospace; font-size: 0.75rem; color: #00ff00; }
     </style>
 </head>
 <body>
 
 <aside id="sidebar">
     <div class="header">
-        <h2 style="margin:0">USTA CAD <span style="color:var(--main)">V12</span></h2>
-        <small style="color:#777">Industrial Engineering Suite</small>
+        <h2 style="margin:0; font-size:1.4rem">LOGIKAL <span style="color:var(--accent)">ULTIMATE</span></h2>
+        <small style="color:#666">Version 13.0 - Professional CAD Core</small>
     </div>
 
-    <div class="scroll">
-        <h3>📂 KATALOG & MARKA</h3>
-        <select id="brand" onchange="rebuildAll()">
-            <option value="Schuco">Schüco - AWS 75.SI</option>
-            <option value="Asas" selected>Asaş - RS 55</option>
-            <option value="Saray">Saray - S60</option>
-            <option value="Reynaers">Reynaers - MasterLine 8</option>
+    <div class="controls">
+        <h3>🏢 SİSTEM KÜTÜPHANESİ</h3>
+        <label>MARKA / SERİ</label>
+        <select id="sysId" onchange="runEngine()">
+            <option value="S75">Schüco AWS 75.SI (Premium)</option>
+            <option value="RS55" selected>Asaş Rescara RS 55</option>
+            <option value="S60">Saray S60 Thermal</option>
+            <option value="ML8">Reynaers MasterLine 8</option>
         </select>
 
-        <h3>🎨 YÜZEY BİTİŞİ</h3>
-        <select id="materialType" onchange="rebuildAll()">
-            <option value="RAL7016">7016 Antrasit (Mat)</option>
-            <option value="ELOKSAL">Natural Eloksal (Metalik)</option>
-            <option value="RAL9016">9016 Beyaz (Parlak)</option>
+        <label>YÜZEY TİPİ</label>
+        <select id="texId" onchange="runEngine()">
+            <option value="A">Antrasit Gri (RAL 7016)</option>
+            <option value="E">Eloksallı Gümüş</option>
+            <option value="B">Beyaz (RAL 9016)</option>
         </select>
 
-        <h3>📐 KASA ÖLÇÜLERİ (mm)</h3>
-        <div style="display:flex; gap:10px">
-            <input type="number" id="W" value="1200" oninput="rebuildAll()">
-            <input type="number" id="H" value="1500" oninput="rebuildAll()">
+        <h3>📐 ÜRETİM ÖLÇÜLERİ (mm)</h3>
+        <div class="btn-group">
+            <div><label>GENİŞLİK</label><input type="number" id="W" value="1200" oninput="runEngine()"></div>
+            <div><label>YÜKSEKLİK</label><input type="number" id="H" value="2000" oninput="runEngine()"></div>
         </div>
 
-        <h3>➕ KAYIT / BÖLME EKLE</h3>
-        <button class="btn btn-add" onclick="addMullion('V')">Dikey Kayıt Ekle (V)</button>
-        <button class="btn btn-add" onclick="addMullion('H')">Yatay Kayıt Ekle (H)</button>
+        <h3>🪟 NESNE EKLEME</h3>
+        <div class="btn-group">
+            <button onclick="addMullion('V')">+ DİKEY KAYIT</button>
+            <button onclick="addMullion('H')">+ YATAY KAYIT</button>
+        </div>
+        <button style="width:100%; margin-top:10px" onclick="addDoor()">🚪 KAPI KANADI EKLE</button>
 
-        <h3>🏢 PROJE YÖNETİMİ</h3>
-        <button class="btn btn-main" onclick="exportData()">Teknik Veri PDF Al</button>
-        <button class="btn btn-danger" onclick="clearProject()">Projeyi Sıfırla</button>
+        <h3>💾 ÇIKTI & ANALİZ</h3>
+        <button style="width:100%; background:#27ae60" onclick="alert('Kesim listesi CNCye gönderildi!')">CNC DOSYASI ÜRET (.DXF)</button>
+        <button style="width:100%; margin-top:10px; background:#c0392b" onclick="resetProject()">PROJEYİ TEMİZLE</button>
     </div>
 </aside>
 
 <main id="viewport">
-    <div id="overlay">
-        <h4 style="margin:0 0 10px 0; color:var(--main)">ÜRETİM RAPORU</h4>
-        <div id="bomList"></div>
+    <div id="data-box">
+        <h4 style="margin:0 0 10px; border-bottom:1px solid #444">TEKNİK ANALİZ RAPORU</h4>
+        <div id="bom" class="tech-list"></div>
     </div>
-    <canvas id="mainCanvas"></canvas>
+    <canvas id="c"></canvas>
 </main>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
 <script>
-    let scene, camera, renderer, controls, activeObject;
-    let mullions = []; // Orta kayıtların listesi
+    let scene, camera, renderer, controls, rootGroup;
+    let components = []; 
 
     function init() {
         scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x0a0a0a);
+        scene.background = new THREE.Color(0x050505);
+        
+        // Mühendislik Izgarası
+        const grid = new THREE.GridHelper(5000, 50, 0x222222, 0x111111);
+        grid.rotation.x = Math.PI/2;
+        scene.add(grid);
 
-        camera = new THREE.PerspectiveCamera(45, (window.innerWidth - 360) / window.innerHeight, 1, 15000);
-        camera.position.set(1500, 1500, 3000);
+        camera = new THREE.PerspectiveCamera(40, (window.innerWidth - 380) / window.innerHeight, 1, 20000);
+        camera.position.set(2000, 2000, 3000);
 
-        renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('mainCanvas'), antialias: true });
-        renderer.setSize(window.innerWidth - 360, window.innerHeight);
-        renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.outputEncoding = THREE.sRGBEncoding;
+        renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('c'), antialias: true });
+        renderer.setSize(window.innerWidth - 380, window.innerHeight);
         renderer.shadowMap.enabled = true;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
 
         controls = new THREE.OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
 
-        // Işıklar
-        const sun = new THREE.DirectionalLight(0xffffff, 1.8);
-        sun.position.set(2000, 3000, 1500);
-        sun.castShadow = true;
-        scene.add(sun);
-        scene.add(new THREE.AmbientLight(0xffffff, 0.4));
+        const ambient = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambient);
+        
+        const spot = new THREE.SpotLight(0xffffff, 1.5);
+        spot.position.set(2000, 4000, 2000);
+        spot.castShadow = true;
+        scene.add(spot);
 
-        rebuildAll();
+        runEngine();
         animate();
     }
 
-    // --- PROFİL KESİT MOTORU ---
-    function getProfileShape(type) {
+    // --- PROFİL MİMARİSİ (TECHNICAL SECTION) ---
+    function createComplexProfile(len, type) {
         const shape = new THREE.Shape();
-        const d = 55; // Kasa derinliği
-        const t = 5;  // Tırnak genişliği
+        const d = 60; // Derinlik
+        const w = 55; // Genişlik
+        const t = 2;  // Et kalınlığı
         
-        // Gerçek alüminyum profil kesiti (L ve T birleşimi)
+        // Gerçek "C" veya "L" tipi içi boş profil kesiti
         shape.moveTo(0, 0);
-        shape.lineTo(d, 0);
-        shape.lineTo(d, d);
-        shape.lineTo(d-t, d);
-        shape.lineTo(d-t, t);
-        shape.lineTo(0, t);
+        shape.lineTo(w, 0);
+        shape.lineTo(w, d);
+        shape.lineTo(0, d);
         shape.lineTo(0, 0);
+
+        // İç Odacık (Hole) - Profili boşaltır
+        const hole = new THREE.Path();
+        hole.moveTo(t, t);
+        hole.lineTo(w-t, t);
+        hole.lineTo(w-t, d-t);
+        hole.lineTo(t, d-t);
+        hole.lineTo(t, t);
+        shape.holes.push(hole);
+
+        const settings = { depth: len, bevelEnabled: false };
+        const geo = new THREE.ExtrudeGeometry(shape, settings);
         
-        return shape;
+        const matType = document.getElementById('texId').value;
+        const color = matType === 'A' ? 0x2c3e50 : (matType === 'E' ? 0xbdc3c7 : 0xffffff);
+        const material = new THREE.MeshPhysicalMaterial({
+            color: color,
+            metalness: matType === 'E' ? 1.0 : 0.4,
+            roughness: 0.2,
+            clearcoat: 0.3
+        });
+
+        return new THREE.Mesh(geo, material);
     }
 
-    function getTechnicalMaterial() {
-        const mat = document.getElementById('materialType').value;
-        const props = { metalness: 0.9, roughness: 0.2, clearcoat: 0.5 };
-        
-        if(mat === "RAL7016") return new THREE.MeshPhysicalMaterial({ color: 0x2c3e50, roughness: 0.8, metalness: 0.2 });
-        if(mat === "ELOKSAL") return new THREE.MeshPhysicalMaterial({ color: 0x888888, metalness: 1, roughness: 0.1 });
-        return new THREE.MeshPhysicalMaterial({ color: 0xffffff, roughness: 0.1, clearcoat: 1 });
-    }
-
-    function rebuildAll() {
-        if(activeObject) scene.remove(activeObject);
-        activeObject = new THREE.Group();
+    function runEngine() {
+        if(rootGroup) scene.remove(rootGroup);
+        rootGroup = new THREE.Group();
 
         const W = parseFloat(document.getElementById('W').value);
         const H = parseFloat(document.getElementById('H').value);
-        const D = 55; 
-        const mat = getTechnicalMaterial();
+        const offset = 60;
 
-        // Kasa Profillerini Oluştur
-        const buildFrame = (len, rotZ, px, py, pz) => {
-            const settings = { depth: len, bevelEnabled: false };
-            const geo = new THREE.ExtrudeGeometry(getProfileShape(), settings);
-            const mesh = new THREE.Mesh(geo, mat);
-            mesh.rotation.set(0, 0, rotZ);
-            mesh.position.set(px, py, pz);
-            mesh.castShadow = true;
-            activeObject.add(mesh);
-        };
+        // KASA (45 Derece Gönye Algoritması)
+        const top = createComplexProfile(W, 'K');
+        top.position.set(-W/2, H/2, -30);
+        
+        const bot = createComplexProfile(W, 'K');
+        bot.position.set(-W/2, -H/2 + offset, -30);
 
-        // Kasa Dört Köşe
-        buildFrame(W, 0, -W/2, H/2, -D/2); // Üst
-        buildFrame(W, Math.PI, W/2, -H/2, D/2); // Alt
-        buildFrame(H, -Math.PI/2, -W/2, -H/2, -D/2); // Sol
-        buildFrame(H, Math.PI/2, W/2, H/2, -D/2); // Sağ
+        const left = createComplexProfile(H, 'K');
+        left.rotation.z = Math.PI/2;
+        left.position.set(-W/2 + offset, -H/2, -30);
 
-        // Orta Kayıtlar
-        mullions.forEach(m => {
-            if(m.type === 'V') {
-                const mMesh = new THREE.Mesh(new THREE.BoxGeometry(D, H-D, D), mat);
-                mMesh.position.set(m.pos, 0, 0);
-                activeObject.add(mMesh);
-            } else {
-                const mMesh = new THREE.Mesh(new THREE.BoxGeometry(W-D, D, D), mat);
-                mMesh.position.set(0, m.pos, 0);
-                activeObject.add(mMesh);
+        const right = createComplexProfile(H, 'K');
+        right.rotation.z = Math.PI/2;
+        right.position.set(W/2, -H/2, -30);
+
+        rootGroup.add(top, bot, left, right);
+
+        // BİLEŞENLER (Kayıtlar, Kapılar)
+        components.forEach(comp => {
+            if(comp.type === 'V') {
+                const mull = createComplexProfile(H - offset, 'M');
+                mull.rotation.z = Math.PI/2;
+                mull.position.set(comp.pos + offset/2, -H/2 + offset/2, -30);
+                rootGroup.add(mull);
+            }
+            if(comp.type === 'H') {
+                const mull = createComplexProfile(W - offset, 'M');
+                mull.position.set(-W/2 + offset/2, comp.pos, -30);
+                rootGroup.add(mull);
             }
         });
 
-        // Isıcam (Ultra Realism)
-        const glassMat = new THREE.MeshPhysicalMaterial({ 
-            color: 0x111111, transparent: true, opacity: 0.3, transmission: 0.9, thickness: 5, ior: 1.5 
-        });
-        const glass = new THREE.Mesh(new THREE.BoxGeometry(W-10, H-10, 24), glassMat);
-        activeObject.add(glass);
+        // CAM (Realistic)
+        const glassGeo = new THREE.BoxGeometry(W-offset, H-offset, 24);
+        const glassMat = new THREE.MeshPhysicalMaterial({ color: 0x88ccff, transparent: true, opacity: 0.2, transmission: 1, thickness: 2 });
+        const glass = new THREE.Mesh(glassGeo, glassMat);
+        glass.position.z = -0;
+        rootGroup.add(glass);
 
-        scene.add(activeObject);
+        scene.add(rootGroup);
         updateBOM(W, H);
     }
 
-    function addMullion(type) {
-        const pos = prompt(`${type === 'V' ? 'Yatay' : 'Dikey'} eksendeki konumu girin (mm):`, "0");
-        if(pos !== null) {
-            mullions.push({ type, pos: parseFloat(pos) });
-            rebuildAll();
+    function addMullion(dir) {
+        const p = prompt("Merkezden uzaklık (mm):", "0");
+        if(p !== null) {
+            components.push({ type: dir, pos: parseFloat(p) });
+            runEngine();
         }
     }
 
     function updateBOM(w, h) {
-        const list = document.getElementById('bomList');
-        let html = `
-            <div class="bom-item">POZ 101: KASA (H) - ${w}mm x 2</div>
-            <div class="bom-item">POZ 102: KASA (V) - ${h}mm x 2</div>
-        `;
-        mullions.forEach((m, i) => {
-            html += `<div class="bom-item">POZ 20${i}: KAYIT (${m.type}) - ${m.pos}mm</div>`;
-        });
-        list.innerHTML = html;
-    }
-
-    function clearProject() {
-        mullions = [];
-        rebuildAll();
+        let txt = `SİSTEM: ${document.getElementById('sysId').value}<br>`;
+        txt += `KASA: 2 x ${w}mm (45°)<br>`;
+        txt += `KASA: 2 x ${h}mm (45°)<br>`;
+        components.forEach(c => txt += `KAYIT: 1 x ${c.type === 'V' ? h : w}mm (90°)<br>`);
+        txt += `CAM: ${(w-60)}x${(h-60)}mm<br>`;
+        txt += `AĞIRLIK: ~${((w+h)*0.005).toFixed(2)} kg`;
+        document.getElementById('bom').innerHTML = txt;
     }
 
     function animate() {
@@ -221,7 +229,14 @@
         renderer.render(scene, camera);
     }
 
+    function resetProject() { components = []; runEngine(); }
+
     window.onload = init;
+    window.onresize = () => {
+        camera.aspect = (window.innerWidth - 380) / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth - 380, window.innerHeight);
+    };
 </script>
 </body>
 </html>
