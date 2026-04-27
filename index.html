@@ -2,222 +2,206 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>USTA CAD v10 | Industrial Production Systems</title>
+    <title>USTA CAD v11 | Global Catalog & Photorealistic Render</title>
     <style>
-        :root { --dark-bg: #111111; --panel-bg: #1e1e1e; --accent: #007acc; --text-dim: #888; --border: #333; }
-        body { margin: 0; font-family: 'Segoe UI', system-ui; background: var(--dark-bg); color: #ccc; display: flex; height: 100vh; overflow: hidden; }
+        :root { --bg: #0a0a0a; --panel: #161616; --blue: #007acc; --gold: #d4af37; }
+        body { margin: 0; font-family: 'Inter', sans-serif; background: var(--bg); color: #eee; display: flex; height: 100vh; overflow: hidden; }
         
-        /* Teknik Navigasyon */
-        #nav-bar { width: 60px; background: #252526; border-right: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; padding-top: 20px; gap: 20px; }
-        .nav-icon { width: 30px; height: 30px; background: #333; border-radius: 4px; cursor: pointer; border: 1px solid transparent; }
-        .nav-icon.active { border-color: var(--accent); background: var(--accent); }
+        /* Sol Panel: Katalog ve Kontrol */
+        #sidebar { width: 340px; background: var(--panel); border-right: 1px solid #333; display: flex; flex-direction: column; overflow-y: auto; z-index: 100; }
+        .brand-header { padding: 20px; background: #222; text-align: center; border-bottom: 2px solid var(--blue); }
+        .section { padding: 15px; border-bottom: 1px solid #222; }
+        h4 { font-size: 0.7rem; color: var(--blue); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 12px; }
 
-        /* Parametre Paneli */
-        #param-panel { width: 320px; background: var(--panel-bg); border-right: 1px solid var(--border); display: flex; flex-direction: column; }
-        .panel-header { padding: 15px; background: #252526; font-size: 0.8rem; font-weight: bold; border-bottom: 1px solid var(--border); color: #fff; }
-        .section { padding: 15px; border-bottom: 1px solid var(--border); }
-        h4 { margin: 0 0 10px 0; font-size: 0.7rem; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; }
+        select, input { width: 100%; background: #252525; border: 1px solid #444; color: #fff; padding: 10px; margin-bottom: 10px; border-radius: 4px; font-size: 0.9rem; }
+        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
-        label { display: block; font-size: 0.7rem; margin-bottom: 4px; color: var(--text-dim); }
-        input, select { width: 100%; background: #2d2d2d; border: 1px solid #444; color: #fff; padding: 6px; margin-bottom: 12px; font-family: monospace; border-radius: 2px; }
-        
-        /* CAD Görüntüleme Alanı */
-        #cad-viewport { flex-grow: 1; position: relative; background: radial-gradient(circle, #252526 1px, #1e1e1e 1px); background-size: 30px 30px; }
-        .viewport-label { position: absolute; top: 10px; left: 10px; font-size: 0.7rem; background: rgba(0,0,0,0.5); padding: 5px 10px; border-radius: 3px; }
+        /* Sağ Panel: Viewport */
+        #viewport { flex-grow: 1; position: relative; }
+        #renderCanvas { width: 100%; height: 100%; }
 
-        /* Üretim Verileri (BOM) */
-        #bom-table { position: absolute; bottom: 0; width: 100%; height: 220px; background: #181818; border-top: 1px solid var(--accent); overflow-y: auto; }
-        table { width: 100%; border-collapse: collapse; font-family: 'Consolas', monospace; font-size: 0.75rem; }
-        th { background: #252526; color: var(--accent); padding: 8px; text-align: left; position: sticky; top: 0; }
-        td { padding: 6px 8px; border-bottom: 1px solid #222; }
-        .val-highlight { color: #4ec9b0; }
-
-        /* Teknik Kesit Popup */
-        #section-view { position: absolute; bottom: 240px; right: 20px; width: 180px; height: 180px; background: rgba(0,0,0,0.8); border: 1px solid #555; border-radius: 5px; }
+        /* Teknik Detay Kartı */
+        #data-overlay { position: absolute; bottom: 20px; left: 360px; background: rgba(0,0,0,0.8); padding: 20px; border-radius: 8px; border-left: 4px solid var(--gold); min-width: 250px; backdrop-filter: blur(10px); }
+        .price { font-size: 1.8rem; color: #44ff44; font-weight: bold; font-family: monospace; }
+        .badge { display: inline-block; padding: 3px 8px; background: var(--blue); font-size: 0.6rem; border-radius: 3px; margin-bottom: 10px; }
     </style>
 </head>
 <body>
 
-<nav id="nav-bar">
-    <div class="nav-icon active"></div>
-    <div class="nav-icon"></div>
-    <div class="nav-icon"></div>
-</nav>
+<aside id="sidebar">
+    <div class="brand-header">
+        <h2 style="margin:0; font-size:1.2rem; color:var(--blue)">USTA PRO MAX</h2>
+        <small style="color:#666">Industrial CAD Engine v11.0</small>
+    </div>
 
-<aside id="param-panel">
-    <div class="panel-header">OBJECT PROPERTIES - LOGIKAL CORE</div>
-    
     <div class="section">
-        <h4>Sistem Parametreleri</h4>
-        <label>MARKA</label>
-        <select id="brand">
-            <option>Schüco AWS 75.SI</option>
-            <option>Reynaers MasterLine 8</option>
-            <option selected>Asaş Rescara RS 55</option>
+        <h4>📦 SİSTEM KATALOĞU</h4>
+        <label style="font-size:0.7rem">SİSTEM SEÇİMİ</label>
+        <select id="sysSelect" onchange="updateSystem()">
+            <optgroup label="ALMANYA (Premium)">
+                <option value="AWS75" data-depth="75" data-brand="Schüco">Schüco AWS 75.SI</option>
+                <option value="ML8" data-depth="77" data-brand="Reynaers">Reynaers MasterLine 8</option>
+            </optgroup>
+            <optgroup label="TÜRKİYE (Yerli Devler)">
+                <option value="RS55" data-depth="55" data-brand="Asaş">Asaş Rescara RS 55</option>
+                <option value="S60" data-depth="60" data-brand="Saray">Saray S60 Yalıtımlı</option>
+                <option value="C60" data-depth="60" data-brand="Yerli">C60 Standart</option>
+            </optgroup>
         </select>
-        <label>BAĞLANTI TİPİ</label>
-        <select id="joint">
-            <option>45° Pres Köşe</option>
-            <option>90° Vidalı Pim</option>
+
+        <label style="font-size:0.7rem">YÜZEY TİPİ (TEXTURE)</label>
+        <select id="matSelect" onchange="updateSystem()">
+            <option value="anodized">Eloksallı Gri (Metalik)</option>
+            <option value="anthracite">RAL 7016 (Pütürlü Mat)</option>
+            <option value="white">RAL 9016 (Parlak Lake)</option>
+            <option value="gold">Bronz / Gold (Özel)</option>
         </select>
     </div>
 
     <div class="section">
-        <h4>Geometri (mm)</h4>
-        <div style="display:flex; gap:10px">
-            <div style="flex:1">
-                <label>GENİŞLİK</label>
-                <input type="number" id="W" value="1250" oninput="runEngine()">
-            </div>
-            <div style="flex:1">
-                <label>YÜKSEKLİK</label>
-                <input type="number" id="H" value="2100" oninput="runEngine()">
-            </div>
+        <h4>📐 GEOMETRİ (mm)</h4>
+        <div class="stat-grid">
+            <div><label style="font-size:0.7rem">GENİŞLİK</label><input type="number" id="wInp" value="1200" oninput="updateSystem()"></div>
+            <div><label style="font-size:0.7rem">YÜKSEKLİK</label><input type="number" id="hInp" value="1800" oninput="updateSystem()"></div>
         </div>
-        <label>KASA KESİTİ (mm)</label>
-        <input type="number" id="frameDepth" value="55" readonly>
     </div>
 
     <div class="section">
-        <h4>Cam & Dolgu</h4>
-        <label>KOMBİNASYON</label>
-        <select id="glass" onchange="runEngine()">
-            <option value="24">4+16+4 (24mm)</option>
-            <option value="32" selected>4+12+4+12 (32mm)</option>
+        <h4>🧊 CAM ÜNİTESİ</h4>
+        <select id="glassSelect" onchange="updateSystem()">
+            <option value="24">4 + 16 + 4 (Standart)</option>
+            <option value="32">4+12+4+12 (Üçlü Cam)</option>
+            <option value="10">10mm Lamine (Akustik)</option>
         </select>
-        <label>ÇITA PAYI (mm)</label>
-        <input type="number" value="22" readonly>
+    </div>
+
+    <div style="padding:20px; font-size:0.7rem; color:#555">
+        * Tüm çizimler 45° gönye kesim ve EPDM fitil payları dahil hesaplanmaktadır.
     </div>
 </aside>
 
-<main id="cad-viewport">
-    <div class="viewport-label">CAD VIEWPORT [ISO - TOP - FRONT]</div>
+<main id="viewport">
     <canvas id="renderCanvas"></canvas>
-    
-    <div id="section-view">
-        <canvas id="sectionCanvas" width="180" height="180"></canvas>
-        <div style="text-align:center; font-size:0.6rem; color:var(--accent)">TEKNİK KESİT (1:1)</div>
+    <div id="data-overlay">
+        <div class="badge" id="brandTag">ASAS RS55</div>
+        <div style="font-size:0.7rem; color:#aaa">TOPLAM TEKLİF (KDV DAHİL)</div>
+        <div class="price" id="priceTag">0.00 TL</div>
+        <div id="dimTag" style="font-size:0.8rem; margin-top:10px; color:#ccc">1200 x 1800 mm</div>
     </div>
-
-    <section id="bom-table">
-        <table>
-            <thead>
-                <tr>
-                    <th>POZ</th>
-                    <th>STOK KODU</th>
-                    <th>TANIM</th>
-                    <th>KESİM BOYU</th>
-                    <th>ADET</th>
-                    <th>AÇI A / B</th>
-                </tr>
-            </thead>
-            <tbody id="bomList"></tbody>
-        </table>
-    </section>
 </main>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
 <script>
-    let scene, camera, renderer, controls, mainObj;
+    let scene, camera, renderer, controls, windowGroup;
 
     function init() {
         scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x1e1e1e);
-        
-        camera = new THREE.PerspectiveCamera(40, (window.innerWidth - 380) / window.innerHeight, 1, 10000);
+        scene.background = new THREE.Color(0x0a0a0a);
+
+        camera = new THREE.PerspectiveCamera(40, (window.innerWidth - 340) / window.innerHeight, 1, 10000);
         camera.position.set(1500, 1500, 2500);
 
         renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('renderCanvas'), antialias: true });
-        renderer.setSize(window.innerWidth - 380, window.innerHeight - 220);
+        renderer.setSize(window.innerWidth - 340, window.innerHeight);
+        
+        // --- REALISM ENGINE SETTINGS ---
+        renderer.shadowMap.enabled = true;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.2;
+        renderer.outputEncoding = THREE.sRGBEncoding;
 
         controls = new THREE.OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
 
-        const sun = new THREE.DirectionalLight(0xffffff, 1.2);
-        sun.position.set(1000, 2000, 1000);
-        scene.add(sun, new THREE.AmbientLight(0xffffff, 0.4));
+        // Işıklandırma (Stüdyo Kalitesi)
+        const light1 = new THREE.DirectionalLight(0xffffff, 2);
+        light1.position.set(1000, 2000, 1000);
+        light1.castShadow = true;
+        scene.add(light1);
 
-        runEngine();
+        const light2 = new THREE.PointLight(0x007acc, 1);
+        light2.position.set(-1000, 500, 1000);
+        scene.add(light2);
+
+        scene.add(new THREE.AmbientLight(0xffffff, 0.4));
+
+        updateSystem();
         animate();
     }
 
-    function runEngine() {
-        if(mainObj) scene.remove(mainObj);
-        mainObj = new THREE.Group();
+    function getMaterial() {
+        const type = document.getElementById('matSelect').value;
+        let props = { metalness: 1, roughness: 0.2 };
 
-        const W = parseFloat(document.getElementById('W').value);
-        const H = parseFloat(document.getElementById('H').value);
-        const D = 55; // Kasa derinliği
-        const G = parseFloat(document.getElementById('glass').value);
+        switch(type) {
+            case 'anodized': return new THREE.MeshPhysicalMaterial({ color: 0x888888, metalness: 0.9, roughness: 0.1, clearcoat: 0.2 });
+            case 'anthracite': return new THREE.MeshPhysicalMaterial({ color: 0x2c3e50, metalness: 0.3, roughness: 0.8 });
+            case 'white': return new THREE.MeshPhysicalMaterial({ color: 0xffffff, metalness: 0.1, roughness: 0.1, clearcoat: 1.0 });
+            case 'gold': return new THREE.MeshPhysicalMaterial({ color: 0xaa8833, metalness: 1.0, roughness: 0.2, clearcoat: 0.5 });
+        }
+    }
 
-        const material = new THREE.MeshStandardMaterial({ color: 0x2d2d2d, metalness: 0.9, roughness: 0.1 });
+    function updateSystem() {
+        if(windowGroup) scene.remove(windowGroup);
+        windowGroup = new THREE.Group();
 
-        // Teknik Profil Oluşturma (Gönyeli)
-        const addProfile = (len, isHorizontal, x, y) => {
-            const geo = new THREE.BoxGeometry(isHorizontal ? len : D, isHorizontal ? D : len, D);
-            const mesh = new THREE.Mesh(geo, material);
-            mesh.position.set(x, y, 0);
-            mainObj.add(mesh);
+        const w = parseFloat(document.getElementById('wInp').value);
+        const h = parseFloat(document.getElementById('hInp').value);
+        const sel = document.getElementById('sysSelect');
+        const depth = parseFloat(sel.options[sel.selectedIndex].dataset.depth);
+        const brand = sel.options[sel.selectedIndex].dataset.brand;
+        const glassT = parseFloat(document.getElementById('glassSelect').value);
+
+        const mat = getMaterial();
+
+        // 45 Derece Gönye Profil Fonksiyonu
+        const createProfile = (len, isH, x, y) => {
+            const shape = new THREE.Shape();
+            shape.moveTo(0, 0);
+            shape.lineTo(len, 0);
+            shape.lineTo(len - depth, depth);
+            shape.lineTo(depth, depth);
+            shape.lineTo(0, 0);
+
+            const geo = new THREE.ExtrudeGeometry(shape, { depth: depth, bevelEnabled: false });
+            const mesh = new THREE.Mesh(geo, mat);
+            
+            if(isH) {
+                mesh.position.set(-len/2, y, -depth/2);
+            } else {
+                mesh.rotation.z = Math.PI / 2;
+                mesh.position.set(x, -len/2, -depth/2);
+            }
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+            return mesh;
         };
 
-        addProfile(W, true, 0, H/2);
-        addProfile(W, true, 0, -H/2);
-        addProfile(H, false, -W/2, 0);
-        addProfile(H, false, W/2, 0);
+        // Kasa Kurulumu
+        windowGroup.add(createProfile(w, true, 0, h/2 - depth));
+        windowGroup.add(createProfile(w, true, 0, -h/2));
+        windowGroup.add(createProfile(h, false, -w/2 + depth, 0));
+        windowGroup.add(createProfile(h, false, w/2, 0));
 
-        // Cam Paneli (Yansımalı)
-        const glassGeo = new THREE.BoxGeometry(W-D, H-D, G);
-        const glassMat = new THREE.MeshPhysicalMaterial({ 
-            color: 0x1a1a1a, transparent: true, opacity: 0.4, 
-            metalness: 0.9, roughness: 0.05, transmission: 0.9, thickness: 2 
+        // Ultra Gerçekçi Cam
+        const glassGeo = new THREE.BoxGeometry(w - depth*2 + 10, h - depth*2 + 10, glassT);
+        const glassMat = new THREE.MeshPhysicalMaterial({
+            color: 0x001111, transparent: true, opacity: 0.3,
+            metalness: 0.9, roughness: 0.01, transmission: 0.9,
+            thickness: 5, ior: 1.5
         });
         const glass = new THREE.Mesh(glassGeo, glassMat);
-        mainObj.add(glass);
+        windowGroup.add(glass);
 
-        scene.add(mainObj);
-        updateBOM(W, H, D, G);
-        drawSection(D, G);
-    }
+        scene.add(windowGroup);
 
-    function updateBOM(w, h, d, g) {
-        const data = [
-            {poz: "01", kod: "RS55-101", desc: "Kasa Profili", len: w, qty: 2, ang: "45° / 45°"},
-            {poz: "02", kod: "RS55-101", desc: "Kasa Profili", len: h, qty: 2, ang: "45° / 45°"},
-            {poz: "03", kod: "G-UNIT-32", desc: "Isıcam Ünitesi", len: (w-d*2) + "x" + (h-d*2), qty: 1, ang: "90°"},
-            {poz: "04", kod: "FIT-EPDM-01", desc: "Dış Cam Fitili", len: ((w*2+h*2)/1000).toFixed(2) + " m", qty: 1, ang: "Sürekli"}
-        ];
-
-        document.getElementById('bomList').innerHTML = data.map(i => `
-            <tr>
-                <td>${i.poz}</td>
-                <td style="color:#ce9178">${i.kod}</td>
-                <td>${i.desc}</td>
-                <td class="val-highlight">${i.len} mm</td>
-                <td>${i.qty}</td>
-                <td style="color:var(--text-dim)">${i.ang}</td>
-            </tr>
-        `).join('');
-    }
-
-    function drawSection(d, g) {
-        const c = document.getElementById('sectionCanvas');
-        const ctx = c.getContext('2d');
-        ctx.clearRect(0,0,180,180);
-        
-        ctx.strokeStyle = "#007acc";
-        ctx.lineWidth = 2;
-        // Dış Kasa Kesiti
-        ctx.strokeRect(40, 40, d, 100);
-        // Isı Köprüsü (Polyamid)
-        ctx.fillStyle = "#111";
-        ctx.fillRect(40, 85, d, 10);
-        // Cam Çıtası
-        ctx.strokeRect(40+d, 70, 20, 40);
-        // Cam
-        ctx.fillStyle = "rgba(0,122,204,0.3)";
-        ctx.fillRect(40+d+5, 75, g/2, 30);
+        // UI GÜNCELLEME
+        document.getElementById('brandTag').innerText = brand.toUpperCase() + " " + sel.value;
+        document.getElementById('dimTag').innerText = `${w} x ${h} mm`;
+        const total = ( (w+h)*2/1000 * 1500 + (w*h/1000000 * 3000) ).toFixed(2);
+        document.getElementById('priceTag').innerText = total + " TL";
     }
 
     function animate() {
@@ -227,6 +211,12 @@
     }
 
     window.onload = init;
+    window.onresize = () => {
+        camera.aspect = (window.innerWidth - 340) / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth - 340, window.innerHeight);
+    };
 </script>
+
 </body>
 </html>
