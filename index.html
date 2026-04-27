@@ -2,202 +2,173 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>Usta CAD v8.0 | Profesyonel Alüminyum Tasarım</title>
+    <title>Usta CAD v9.0 | LogiKal Technical Simulation</title>
     <style>
-        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: #0f172a; color: white; display: flex; height: 100vh; }
-        #ui-panel { width: 320px; background: #1e293b; padding: 20px; border-right: 2px solid #3b82f6; overflow-y: auto; box-shadow: 5px 0 15px rgba(0,0,0,0.5); }
-        #canvas-container { flex-grow: 1; position: relative; }
-        .control-group { background: #334155; padding: 15px; border-radius: 10px; margin-bottom: 15px; border-bottom: 3px solid #3b82f6; }
-        h3 { margin-top: 0; color: #3b82f6; font-size: 1rem; }
-        button { width: 100%; padding: 12px; margin-top: 10px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; }
-        .btn-add { background: #10b981; color: white; }
-        .btn-del { background: #ef4444; color: white; }
-        .info-card { position: absolute; top: 20px; right: 20px; background: rgba(15, 23, 42, 0.9); padding: 15px; border-radius: 8px; border: 1px solid #3b82f6; }
-        .kesim-listesi { font-family: monospace; font-size: 0.8rem; color: #fbbf24; }
+        :root { --sidebar-bg: #1e1e1e; --main-bg: #2d2d2d; --accent: #007acc; --border: #3c3c3c; --text: #cccccc; }
+        body { margin: 0; font-family: 'Segoe UI', Tahoma; background: var(--main-bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
+        
+        /* Sol Menü - Orgadata Stili */
+        #sidebar { width: 300px; background: var(--sidebar-bg); border-right: 1px solid var(--border); display: flex; flex-direction: column; }
+        .menu-header { padding: 15px; background: #252526; font-weight: bold; border-bottom: 1px solid var(--border); color: var(--accent); }
+        .settings-box { padding: 20px; flex-grow: 1; overflow-y: auto; }
+        
+        label { display: block; font-size: 0.75rem; margin-bottom: 5px; color: #888; text-transform: uppercase; }
+        select, input { width: 100%; background: #3c3c3c; border: 1px solid #555; color: white; padding: 8px; margin-bottom: 15px; border-radius: 2px; }
+        
+        /* Sağ Alan */
+        #workspace { flex-grow: 1; display: flex; flex-direction: column; }
+        .toolbar { height: 40px; background: #333333; border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 15px; gap: 15px; }
+        .view-area { flex-grow: 1; position: relative; cursor: crosshair; }
+        
+        /* Üretim Raporu Alt Panel */
+        #report-panel { height: 200px; background: #1e1e1e; border-top: 2px solid var(--accent); padding: 15px; font-family: 'Consolas', monospace; overflow-y: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+        th { text-align: left; color: var(--accent); border-bottom: 1px solid #333; padding: 5px; }
+        td { padding: 5px; border-bottom: 1px solid #252526; }
+        
+        .status-bar { height: 25px; background: var(--accent); color: white; font-size: 0.7rem; display: flex; align-items: center; padding: 0 10px; }
     </style>
 </head>
 <body>
 
-<div id="ui-panel">
-    <h2>🛠️ USTA CAD PRO</h2>
-    <p style="font-size: 0.8rem; color: #94a3b8;">Orgadata Gelişmiş Tasarım Modülü</p>
-
-    <div class="control-group">
-        <h3>📦 YENİ EKLE</h3>
-        <button class="btn-add" onclick="addNewWindow()">+ Yeni Doğrama Ekle</button>
-        <p style="font-size: 0.7rem;">(Tinkercad gibi sahnede taşıyabilirsin)</p>
-    </div>
-
-    <div class="control-group">
-        <h3>📐 ÖLÇÜLER (Seçili Ürün)</h3>
-        <label>Genişlik (cm)</label>
-        <input type="number" id="inpW" value="120" oninput="updateSelected()">
-        <label>Yükseklik (cm)</label>
-        <input type="number" id="inpH" value="150" oninput="updateSelected()">
-    </div>
-
-    <div class="control-group">
-        <h3>⚙️ SİSTEM AYARI</h3>
-        <select id="inpSeri" onchange="updateSelected()">
-            <option value="5.5">ASAŞ LS 55</option>
-            <option value="6.0">SARAY C60</option>
-            <option value="4.5">ALDOKS</option>
+<div id="sidebar">
+    <div class="menu-header">PROJE YÖNETİMİ</div>
+    <div class="settings-box">
+        <label>Sistem Firması</label>
+        <select id="firma">
+            <option>ASAŞ ALÜMİNYUM</option>
+            <option>SARAY SİSTEM</option>
+            <option>YAVUZ ALÜMİNYUM</option>
         </select>
-        <input type="color" id="inpColor" value="#3b82f6" style="height:40px;" oninput="updateSelected()">
-    </div>
 
-    <button class="btn-del" onclick="deleteSelected()">Seçiliyi Sil</button>
+        <label>Seri Seçimi</label>
+        <select id="seri" onchange="updateEngine()">
+            <option value="55">LS 55 (Isı Yalıtımlı)</option>
+            <option value="60">C 60 (Standart)</option>
+            <option value="45">ALDOKS (Ekonomik)</option>
+        </select>
+
+        <label>Genişlik (mm)</label>
+        <input type="number" id="W" value="1000" step="10" oninput="updateEngine()">
+        
+        <label>Yükseklik (mm)</label>
+        <input type="number" id="H" value="2000" step="10" oninput="updateEngine()">
+
+        <label>Renk Kodu (RAL)</label>
+        <input type="text" id="ral" value="7016" oninput="updateEngine()">
+
+        <label>Cam Kombinasyonu</label>
+        <select id="cam">
+            <option>4mm + 16mm + 4mm</option>
+            <option>6mm + 12mm + 6mm</option>
+            <option>5mm + 10mm + 5mm</option>
+        </select>
+    </div>
 </div>
 
-<div id="canvas-container">
-    <div class="info-card">
-        <h3>📝 KESİM RAPORU</h3>
-        <div id="report" class="kesim-listesi">Ürün seçin...</div>
+<div id="workspace">
+    <div class="toolbar">
+        <button onclick="setView('2d')">2D Çizim</button>
+        <button onclick="setView('3d')">3D Model</button>
+        <span id="coord">X: 0, Y: 0</span>
     </div>
+    <div class="view-area" id="viewArea">
+        <canvas id="mainCanvas"></canvas>
+    </div>
+    <div id="report-panel">
+        <table>
+            <thead>
+                <tr>
+                    <th>Poz</th>
+                    <th>Açıklama</th>
+                    <th>Adet</th>
+                    <th>Kesim Ölçüsü</th>
+                    <th>Açı</th>
+                </tr>
+            </thead>
+            <tbody id="bomBody">
+                </tbody>
+        </table>
+    </div>
+    <div class="status-bar">Hazır | Ölçü Birimi: mm | Kesim Hassasiyeti: +/- 0.1mm</div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/DragControls.js"></script>
 
 <script>
-    let scene, camera, renderer, orbit, dragControls;
-    let windowObjects = [];
-    let selectedObject = null;
+    let mode = '3d';
+    let scene, camera, renderer, controls, currentMesh;
 
     function init() {
+        // Three.js Kurulumu
         scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x0f172a);
+        scene.background = new THREE.Color(0x2d2d2d);
         
-        // Izgara (Grid) - Tinkercad gibi
-        const grid = new THREE.GridHelper(2000, 50, 0x334155, 0x1e293b);
-        scene.add(grid);
+        camera = new THREE.PerspectiveCamera(45, (window.innerWidth - 300) / window.innerHeight, 1, 5000);
+        camera.position.set(500, 500, 1000);
 
-        camera = new THREE.PerspectiveCamera(45, (window.innerWidth - 320) / window.innerHeight, 1, 5000);
-        camera.position.set(500, 500, 800);
+        renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('mainCanvas'), antialias: true });
+        renderer.setSize(window.innerWidth - 300, window.innerHeight - 265);
 
-        renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(window.innerWidth - 320, window.innerHeight);
-        document.getElementById('canvas-container').appendChild(renderer.domElement);
-
-        orbit = new THREE.OrbitControls(camera, renderer.domElement);
-        orbit.mouseButtons = { ORBIT: THREE.MOUSE.RIGHT, ZOOM: THREE.MOUSE.MIDDLE, PAN: THREE.MOUSE.LEFT };
-
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-        scene.add(ambientLight);
-        const sun = new THREE.DirectionalLight(0xffffff, 0.8);
-        sun.position.set(500, 1000, 500);
-        scene.add(sun);
-
-        addNewWindow(); // Başlangıçta bir tane ekle
+        controls = new THREE.OrbitControls(camera, renderer.domElement);
+        
+        const light = new THREE.AmbientLight(0xffffff, 0.8);
+        scene.add(light);
+        
+        updateEngine();
         animate();
     }
 
-    function createPart(len, gen, color) {
-        const shape = new THREE.Shape();
-        shape.moveTo(0, 0);
-        shape.lineTo(len, 0);
-        shape.lineTo(len - gen, gen);
-        shape.lineTo(gen, gen);
-        shape.lineTo(0, 0);
+    function setView(v) { mode = v; updateEngine(); }
 
-        const extSettings = { depth: 6, bevelEnabled: false };
-        const geo = new THREE.ExtrudeGeometry(shape, extSettings);
-        const mat = new THREE.MeshStandardMaterial({ color: color, metalness: 0.6, roughness: 0.2 });
-        return new THREE.Mesh(geo, mat);
-    }
-
-    function addNewWindow() {
-        const group = new THREE.Group();
-        group.userData = { w: 120, h: 150, seri: 5.5, color: "#3b82f6" };
+    function updateEngine() {
+        const w = parseFloat(document.getElementById('W').value);
+        const h = parseFloat(document.getElementById('H').value);
+        const seri = parseFloat(document.getElementById('seri').value);
         
-        rebuildWindow(group);
-        group.position.set(Math.random()*200 - 100, 75, Math.random()*200 - 100);
+        if(currentMesh) scene.remove(currentMesh);
         
-        scene.add(group);
-        windowObjects.push(group);
-        setupDrag();
-        selectObject(group);
-    }
+        // 3D Profil Grubu oluşturma
+        currentMesh = new THREE.Group();
+        const material = new THREE.MeshStandardMaterial({ color: 0x333333, metalness: 0.8, roughness: 0.2 });
 
-    function rebuildWindow(group) {
-        while(group.children.length > 0) group.remove(group.children[0]);
-        
-        const { w, h, seri, color } = group.userData;
+        // Basitçe 45 derece birleşim simülasyonu
+        const createProfile = (len, isH) => {
+            const geo = new THREE.BoxGeometry(isH ? len : seri, isH ? seri : len, 40);
+            return new THREE.Mesh(geo, material);
+        };
 
-        const ust = createPart(w, seri, color);
-        ust.position.set(-w/2, h/2, 0);
+        const top = createProfile(w, true); top.position.y = h/2;
+        const bot = createProfile(w, true); bot.position.y = -h/2;
+        const left = createProfile(h, false); left.position.x = -w/2;
+        const right = createProfile(h, false); right.position.x = w/2;
 
-        const alt = createPart(w, seri, color);
-        alt.rotation.z = Math.PI;
-        alt.position.set(w/2, -h/2, 6);
+        currentMesh.add(top, bot, left, right);
+        scene.add(currentMesh);
 
-        const sol = createPart(h, seri, color);
-        sol.rotation.z = Math.PI / 2;
-        sol.position.set(-w/2, -h/2, 6);
+        // Kesim Listesi (BOM) Güncelleme
+        const bom = [
+            {poz: "101", aciklama: "Kasa Profili (Yatay)", adet: 2, olcu: w + " mm", aci: "45° / 45°"},
+            {poz: "102", aciklama: "Kasa Profili (Dikey)", adet: 2, olcu: h + " mm", aci: "45° / 45°"},
+            {poz: "501", aciklama: "EPDM Dış Cam Fitili", adet: 1, olcu: ((w*2+h*2)/1000).toFixed(2) + " mt", aci: "-"},
+            {poz: "901", aciklama: "Isıcam Ünitesi", adet: 1, olcu: (w-seri*2) + "x" + (h-seri*2) + " mm", aci: "-"}
+        ];
 
-        const sag = createPart(h, seri, color);
-        sag.rotation.z = -Math.PI / 2;
-        sag.position.set(w/2, h/2, 0);
-
-        group.add(ust, alt, sol, sag);
-    }
-
-    function setupDrag() {
-        if(dragControls) dragControls.dispose();
-        dragControls = new THREE.DragControls(windowObjects, camera, renderer.domElement);
-        dragControls.addEventListener('dragstart', (e) => {
-            orbit.enabled = false;
-            selectObject(e.object.parent || e.object);
+        let html = "";
+        bom.forEach(item => {
+            html += `<tr><td>${item.poz}</td><td>${item.aciklama}</td><td>${item.adet}</td><td>${item.olcu}</td><td>${item.aci}</td></tr>`;
         });
-        dragControls.addEventListener('dragend', () => orbit.enabled = true);
-    }
-
-    function selectObject(obj) {
-        selectedObject = obj;
-        const d = obj.userData;
-        document.getElementById('inpW').value = d.w;
-        document.getElementById('inpH').value = d.h;
-        document.getElementById('inpSeri').value = d.seri;
-        document.getElementById('inpColor').value = d.color;
-        updateReport();
-    }
-
-    function updateSelected() {
-        if(!selectedObject) return;
-        selectedObject.userData.w = parseFloat(document.getElementById('inpW').value);
-        selectedObject.userData.h = parseFloat(document.getElementById('inpH').value);
-        selectedObject.userData.seri = parseFloat(document.getElementById('inpSeri').value);
-        selectedObject.userData.color = document.getElementById('inpColor').value;
-        rebuildWindow(selectedObject);
-        updateReport();
-    }
-
-    function updateReport() {
-        if(!selectedObject) return;
-        const { w, h, seri } = selectedObject.userData;
-        document.getElementById('report').innerHTML = `
-            ÜST/ALT: 2 ADET x ${w} cm (45°)<br>
-            YANLAR : 2 ADET x ${h} cm (45°)<br>
-            NET CAM: ${(w - (seri*2)).toFixed(1)} x ${(h - (seri*2)).toFixed(1)} cm
-        `;
-    }
-
-    function deleteSelected() {
-        if(!selectedObject) return;
-        scene.remove(selectedObject);
-        windowObjects = windowObjects.filter(o => o !== selectedObject);
-        selectedObject = null;
-        setupDrag();
+        document.getElementById('bomBody').innerHTML = html;
     }
 
     function animate() {
         requestAnimationFrame(animate);
-        orbit.update();
+        controls.update();
         renderer.render(scene, camera);
     }
 
-    init();
+    window.onload = init;
 </script>
 </body>
-</html> 
+</html>
